@@ -81,7 +81,7 @@ namespace SnakeGame
 
             food.Size = new Size(particleWidth, particleHeight);
             food.Location = new Point(foodX + (snakeVelocity - (foodX % snakeVelocity)), foodY + (snakeVelocity - (foodY % snakeVelocity)));  // We need to spawn the food in places which our snake is able to visit...
-            food.BackColor = Color.DarkRed;                                                                                                       // So we only produce random numbers which are multiplies of our snake's velocity
+            food.BackColor = Color.DarkRed;                                                                                                       // So we only produce random numbers which are multiples of our snake's velocity
             panel1.Controls.Add(food);
         }
 
