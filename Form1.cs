@@ -4,12 +4,6 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 
 
-
-/* Tasks: 
- * Self Collision
- * get another spawn point for food if there is a snake particle
- */
-
 namespace SnakeGame
 {
     public partial class Form1 : Form
@@ -44,6 +38,7 @@ namespace SnakeGame
                 placesVisited.Add((i, i + i));
             }
         }
+        
         private void Form1_Load(object sender, EventArgs e)
         {
             //GameLoop.Enabled = false;
