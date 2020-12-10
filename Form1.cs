@@ -1,8 +1,14 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
 
+
+
+/* Tasks: 
+ * Self Collision
+ * get another spawn point for food if there is a snake particle
+ */
 
 namespace SnakeGame
 {
@@ -12,19 +18,19 @@ namespace SnakeGame
         readonly Label food = new Label();
         readonly Label[] snake = new Label[2376];
         // readonly (int, int)[] placesVisited = new (int, int)[2376];
-        List<(int, int)> placesVisited = new List<(int, int)>();
-
+        //List<(int, int)> placesVisited = new List<(int, int)>();
+        List<string> previousDirection = new List<string>(2);
         public int x, xTemp;
         public int y, yTemp;
         public int particleWidth = 10;
         public int particleHeight = 10;
         public int panelWidth = 660;
         public int panelHeight = 360;
-        public int headPositionX = 200;  // snake[0] is our snake's head
+        public int headPositionX = 200;  // snake[0] will be our snake's head
         public int headPositionY = 200;
         public int snakeVelocity = 10;  // have to assign this to radiobutton
         public int snakeSize = 5;  // The variable to hold how many particles our snake have
-        public string snakeDirection = "right";
+        public string snakeDirection = "right";  // Snake's first direction
 
         public Form1()
         {
@@ -33,17 +39,16 @@ namespace SnakeGame
 
         private void fillTheList()
         {
-            for (int i = 0; i < snakeSize; i++)
-            {
-                placesVisited.Add((i, i + i));
-            }
+            previousDirection.Add("right");
+            previousDirection.Add("right");
+
         }
-        
         private void Form1_Load(object sender, EventArgs e)
         {
             //GameLoop.Enabled = false;
             //fillTheList();
             //label1.Text = placesVisited[4].ToString();
+            fillTheList();
             SpawnTheSnake();
             SpawnFoodParticle();
         }
@@ -81,7 +86,7 @@ namespace SnakeGame
 
             food.Size = new Size(particleWidth, particleHeight);
             food.Location = new Point(foodX + (snakeVelocity - (foodX % snakeVelocity)), foodY + (snakeVelocity - (foodY % snakeVelocity)));  // We need to spawn the food in places which our snake is able to visit...
-            food.BackColor = Color.DarkRed;                                                                                                       // So we only produce random numbers which are multiples of our snake's velocity
+            food.BackColor = Color.DarkRed;                                                                                                       // So we only produce random numbers which are multiplies of our snake's velocity
             panel1.Controls.Add(food);
         }
 
@@ -125,21 +130,44 @@ namespace SnakeGame
             switch (e.KeyCode)
             {
                 case Keys.Right:
-                    snakeDirection = "right";
+                    label6.Text = "right";
+                    if (previousDirection[1] != "left")
+                    {
+                        snakeDirection = "right";
+                        previousDirection.RemoveAt(0);
+                        previousDirection.Add("right");
+                    }
                     break;
 
                 case Keys.Left:
-                    snakeDirection = "left";
+                    label6.Text = "left";
+                    if (previousDirection[1] != "right")
+                    {
+                        snakeDirection = "left";
+                        previousDirection.RemoveAt(0);
+                        previousDirection.Add("left");
+                    }
                     break;
 
                 case Keys.Up:
-                    snakeDirection = "up";
+                    label6.Text = "up";
+                    if (previousDirection[1] != "down")
+                    {
+                        snakeDirection = "up";
+                        previousDirection.RemoveAt(0);
+                        previousDirection.Add("up");
+                    }
                     break;
 
                 case Keys.Down:
-                    snakeDirection = "down";
+                    label6.Text = "down";
+                    if (previousDirection[1] != "up")
+                    {
+                        snakeDirection = "down";
+                        previousDirection.RemoveAt(0);
+                        previousDirection.Add("down");
+                    }
                     break;
-
             }
         }
 
@@ -159,7 +187,7 @@ namespace SnakeGame
 
             label2.Text = "headX: " + snake[0].Location.X.ToString();
             label3.Text = "headY: " + snake[0].Location.Y.ToString();
-            label4.Text = "foodY: " + food.Location.X.ToString();
+            label4.Text = "foodX: " + food.Location.X.ToString();
             label5.Text = "foodY: " + food.Location.Y.ToString();
 
 
