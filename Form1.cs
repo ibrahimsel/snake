@@ -4,22 +4,19 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 
 
-
 /* Tasks: 
- * Self Collision
- * get another spawn point for food if there is a snake particle
+ * prevent food from spawning on an unavailable point
  */
 
 namespace SnakeGame
 {
-    public partial class Form1 : Form
+    public partial class Snake : Form
     {
         readonly Random rand = new Random();
         readonly Label food = new Label();
         readonly Label[] snake = new Label[2376];
-        // readonly (int, int)[] placesVisited = new (int, int)[2376];
-        //List<(int, int)> placesVisited = new List<(int, int)>();
-        List<string> previousDirection = new List<string>(2);
+        readonly List<Point> unvisitablePoints = new List<Point>();
+        readonly List<string> previousDirection = new List<string>(2);
         public int x, xTemp;
         public int y, yTemp;
         public int particleWidth = 10;
@@ -32,38 +29,59 @@ namespace SnakeGame
         public int snakeSize = 5;  // The variable to hold how many particles our snake have
         public string snakeDirection = "right";  // Snake's first direction
 
-        public Form1()
+        public Snake()
         {
             InitializeComponent();
         }
 
-        private void fillTheList()
+        private void InitDirectionList()
         {
             previousDirection.Add("right");
             previousDirection.Add("right");
-
         }
+
+
+        private void DetectUnvisitablePoints()
+        {
+            for (int i = 1; i < snakeSize; i++)
+            {
+                unvisitablePoints.Add(snake[i].Location);
+            }
+        }
+
+
+        private void ClearUnvisitablePoints()
+        {
+            unvisitablePoints.Clear();
+        }
+
+
+        private Point GetSnakeHeadPos()
+        {
+            return snake[0].Location;
+        }
+
+
         private void Form1_Load(object sender, EventArgs e)
         {
-            //GameLoop.Enabled = false;
-            //fillTheList();
-            //label1.Text = placesVisited[4].ToString();
-            fillTheList();
+            InitDirectionList();
             SpawnTheSnake();
-            SpawnFoodParticle();
+            SpawnFood();
         }
+
 
         private Label AddSnakeParticle(int x, int y)
         {
-            Label snake = new Label
+            Label snakeLabel = new Label
             {
                 Size = new Size(particleWidth, particleHeight),
                 Location = new Point(x, y),
                 BackColor = Color.Green
             };
-            panel1.Controls.Add(snake);
-            return snake;
+            panel1.Controls.Add(snakeLabel);
+            return snakeLabel;
         }
+
 
         private void SpawnTheSnake()
         {
@@ -73,22 +91,25 @@ namespace SnakeGame
             }
         }
 
-        private void Grow()
+
+        private void IncreaseSnakeSize()
         {
             snake[snakeSize] = AddSnakeParticle(snake[snakeSize - 1].Location.X, snake[snakeSize - 1].Location.Y);
             snakeSize++;
         }
 
-        private void SpawnFoodParticle()
+
+        private void SpawnFood()
         {
             int foodX = rand.Next(0, panelWidth - particleWidth);
             int foodY = rand.Next(0, panelHeight - particleHeight);
 
             food.Size = new Size(particleWidth, particleHeight);
-            food.Location = new Point(foodX + (snakeVelocity - (foodX % snakeVelocity)), foodY + (snakeVelocity - (foodY % snakeVelocity)));  // We need to spawn the food in places which our snake is able to visit...
-            food.BackColor = Color.DarkRed;                                                                                                       // So we only produce random numbers which are multiplies of our snake's velocity
+            food.Location = new Point(foodX + (snakeVelocity - (foodX % snakeVelocity)), foodY + (snakeVelocity - (foodY % snakeVelocity)));  // We need to spawn the food in places which our snake is able to visit...         
+            food.BackColor = Color.DarkRed;                                                                                                   // So we only produce random numbers which are multiplies of our snake's velocity
             panel1.Controls.Add(food);
         }
+
 
         private void RemoveFoodParticle()
         {
@@ -98,30 +119,19 @@ namespace SnakeGame
 
         private bool FoodCollision()
         {
-            if ((snake[0].Location.X == food.Location.X) && (snake[0].Location.Y == food.Location.Y))
-            {
-                RemoveFoodParticle();
-                SpawnFoodParticle();
-                return true;
-            }
-            return false;
+            return (snake[0].Location.X == food.Location.X) && (snake[0].Location.Y == food.Location.Y);
         }
+
 
         private bool WallCollision()
         {
-            if (snake[0].Location.X < 0 || snake[0].Location.X > 650 || snake[0].Location.Y < 0 || snake[0].Location.Y > 350)
-            {
-                return true;
-            }
-            return false;
+            return snake[0].Location.X < 0 || snake[0].Location.X > 650 || snake[0].Location.Y < 0 || snake[0].Location.Y > 350;
         }
+
+
         private bool SelfCollision()
         {
-            for (int i = 0; i < snakeSize; i++)
-            {
-
-            }
-            return false;
+            return unvisitablePoints.Contains(GetSnakeHeadPos());
         }
 
 
@@ -130,7 +140,6 @@ namespace SnakeGame
             switch (e.KeyCode)
             {
                 case Keys.Right:
-                    label6.Text = "right";
                     if (previousDirection[1] != "left")
                     {
                         snakeDirection = "right";
@@ -140,7 +149,6 @@ namespace SnakeGame
                     break;
 
                 case Keys.Left:
-                    label6.Text = "left";
                     if (previousDirection[1] != "right")
                     {
                         snakeDirection = "left";
@@ -150,7 +158,6 @@ namespace SnakeGame
                     break;
 
                 case Keys.Up:
-                    label6.Text = "up";
                     if (previousDirection[1] != "down")
                     {
                         snakeDirection = "up";
@@ -160,7 +167,6 @@ namespace SnakeGame
                     break;
 
                 case Keys.Down:
-                    label6.Text = "down";
                     if (previousDirection[1] != "up")
                     {
                         snakeDirection = "down";
@@ -171,25 +177,9 @@ namespace SnakeGame
             }
         }
 
+
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-            if (FoodCollision())
-                Grow();
-
-            if (WallCollision())
-            {
-                GameLoop.Enabled = false;
-                MessageBox.Show("Game Over");
-            }
-
-            if (SelfCollision())
-                ;
-
-            label2.Text = "headX: " + snake[0].Location.X.ToString();
-            label3.Text = "headY: " + snake[0].Location.Y.ToString();
-            label4.Text = "foodX: " + food.Location.X.ToString();
-            label5.Text = "foodY: " + food.Location.Y.ToString();
-
 
             switch (snakeDirection)
             {
@@ -216,7 +206,6 @@ namespace SnakeGame
                     }
                     #endregion
                     break;
-
                 case "up":
                     #region                   
                     for (int i = 0; i < snakeSize; i++)
@@ -241,9 +230,7 @@ namespace SnakeGame
                         }
                     }
                     #endregion
-
                     break;
-
                 case "left":
                     #region                                       
                     for (int i = 0; i < snakeSize; i++)
@@ -267,7 +254,6 @@ namespace SnakeGame
                     }
                     #endregion
                     break;
-
                 case "right":
                     #region
                     for (int i = 0; i < snakeSize; i++)
@@ -291,12 +277,30 @@ namespace SnakeGame
                     #endregion
                     break;
             }
+
+            DetectUnvisitablePoints();
+
+            if (FoodCollision())
+            {
+                RemoveFoodParticle();
+                SpawnFood();
+                IncreaseSnakeSize();
+            }
+
+            if (WallCollision())
+            {
+                GameLoop.Enabled = false;
+                MessageBox.Show("Snake collided the wall");
+            }
+
+
+            if (SelfCollision())
+            {
+                GameLoop.Enabled = false;
+                MessageBox.Show("Snake collided itself");
+            }
+
+            ClearUnvisitablePoints();
         }
-
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-
-        }
-
     }
 }
