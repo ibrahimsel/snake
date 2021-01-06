@@ -3,11 +3,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
 
-
-/* Tasks: 
- * prevent food from spawning on an unavailable point
- */
-
 namespace SnakeGame
 {
     public partial class Snake : Form
